@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+#include "vector.h"
+
 char** processCommand(char command[]) {
     char **args = 0;
     const char *delim = " ";
@@ -30,7 +32,7 @@ char** processCommand(char command[]) {
     }
     args[count] = NULL;
 
-    execvp(args[0], args);
+    //execvp(args[0], args);
     return args;
     
 }
@@ -83,7 +85,16 @@ int main() {
 
     char s1[] = "ping -c 5 google.com";
     char s2[] = "grep rtt";
-    executePipes(s1,s2);
+    //executePipes(s1,s2);
     //processCommand(s1);
+
+    vector v;
+    vectorInit(&v);
+    vectorAdd(&v,s1);
+    vectorAdd(&v,s2);
+
+    for (int i = 0; i < vectorTotal(&v); i++)
+        printf("%s\n", (char *) vectorGet(&v, i));
+    printf("\n");
     return 0;
 }
