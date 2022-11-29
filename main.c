@@ -3,8 +3,65 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <termios.h> 
 
 #include "vector.h"
+
+int getch() {
+   struct termios oldtc;
+   struct termios newtc;
+   int ch;
+   //get the parameters asociated with the terminal 
+   tcgetattr(STDIN_FILENO, &oldtc);
+   newtc = oldtc;
+   //c_lflag = control terminal functions
+   //here disable echo for input
+    /*ICANON normally takes care that one line at a time will be processed
+    that means it will return if it sees a "\n" or an EOF or an EOL*/
+   newtc.c_lflag &= ~(ICANON | ECHO);
+   //set the parameters asociated with the terminal 
+   //TCSANOW the changes will occur immediately
+   tcsetattr(STDIN_FILENO, TCSANOW, &newtc);
+   ch=getchar();//read char
+   //ch=getchar();
+   //ch=getchar();
+   //enable echo flag
+   tcsetattr(STDIN_FILENO, TCSANOW, &oldtc);
+   return ch;
+}
+
+//VT100 escape codes
+int searchHistory() {
+    int ch, position = 0;
+    char command[255];
+    char arrow_command[] = "Arrow";
+    while(1) {
+        ch = getch();
+        ///printf("%d\n", ch);
+        if(ch == 56) {
+            printf("\33[2K\rUP arrow");
+            fflush(stdout);
+            continue;
+        }
+        else if(ch == 50) {
+            printf("\33[2K\rdown arrow");
+            fflush(stdout); 
+            continue;
+        } else if(ch == 27) {
+            break; 
+        } else if(ch == 10) {
+            position = 0; 
+            memset(command, 0, 255);
+            printf("\n");
+        } else {
+            command[position] = (char)ch;
+            position++;
+            printf("\33[2K\r%s",command);
+            fflush(stdout); 
+        } 
+    }
+    printf("Outside while");
+}
 
 char** processCommand(char command[]) {
     char **args = 0;
@@ -93,8 +150,22 @@ int main() {
     vectorAdd(&v,s1);
     vectorAdd(&v,s2);
 
-    for (int i = 0; i < vectorTotal(&v); i++)
-        printf("%s\n", (char *) vectorGet(&v, i));
-    printf("\n");
+    // for (int i = 0; i < vectorTotal(&v); i++)
+    //     printf("%s\n", (char *) vectorGet(&v, i));
+    // printf("\n");
+
+    int ch;
+    char command[100];
+    searchHistory();
+            // if(searchHistory() == 0) {
+            //     scanf("%s",command);
+            //     printf("The Entered string");
+            // }
+            //break;
+        //     printf("wrong input \n");
+
+        // break;
+        
+    
     return 0;
 }
