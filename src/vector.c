@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "vector.h"
 
@@ -21,10 +22,13 @@ static void vectorResize(vector *v, int capacity) {
     }
 }
 
-void vectorAdd(vector *v, void *item) {
+void vectorAdd(vector *v, char *item, int size) {
     if (v->capacity == v->total) 
         vectorResize(v, v->capacity + 1);
-    v->items[v->total++] = item;
+    // strcpy(v->items[v->total++],item);
+    v->items[v->total++] = malloc(sizeof(char) * size);
+    memcpy(&v->items[v->total++],&item[0], sizeof(char) * size);
+    
 }
 
 void vectorSet(vector *v, int index, void *item) {

@@ -12,7 +12,7 @@ typedef struct vector {
 void vectorInit(vector *);
 int vectorTotal(vector *);
 static void vectorResize(vector *, int);
-void vectorAdd(vector *, void *);
+void vectorAdd(vector *, char *,int );
 void vectorSet(vector *, int, void *);
 void * vectorGet(vector *, int);
 void vectorRemove(vector *, int);

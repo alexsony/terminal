@@ -3,65 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <termios.h> 
+#include <ncurses.h>
 
 #include "vector.h"
-
-int getch() {
-   struct termios oldtc;
-   struct termios newtc;
-   int ch;
-   //get the parameters asociated with the terminal 
-   tcgetattr(STDIN_FILENO, &oldtc);
-   newtc = oldtc;
-   //c_lflag = control terminal functions
-   //here disable echo for input
-    /*ICANON normally takes care that one line at a time will be processed
-    that means it will return if it sees a "\n" or an EOF or an EOL*/
-   newtc.c_lflag &= ~(ICANON | ECHO);
-   //set the parameters asociated with the terminal 
-   //TCSANOW the changes will occur immediately
-   tcsetattr(STDIN_FILENO, TCSANOW, &newtc);
-   ch=getchar();//read char
-   //ch=getchar();
-   //ch=getchar();
-   //enable echo flag
-   tcsetattr(STDIN_FILENO, TCSANOW, &oldtc);
-   return ch;
-}
-
-//VT100 escape codes
-int searchHistory() {
-    int ch, position = 0;
-    char command[255];
-    char arrow_command[] = "Arrow";
-    while(1) {
-        ch = getch();
-        ///printf("%d\n", ch);
-        if(ch == 56) {
-            printf("\33[2K\rUP arrow");
-            fflush(stdout);
-            continue;
-        }
-        else if(ch == 50) {
-            printf("\33[2K\rdown arrow");
-            fflush(stdout); 
-            continue;
-        } else if(ch == 27) {
-            break; 
-        } else if(ch == 10) {
-            position = 0; 
-            memset(command, 0, 255);
-            printf("\n");
-        } else {
-            command[position] = (char)ch;
-            position++;
-            printf("\33[2K\r%s",command);
-            fflush(stdout); 
-        } 
-    }
-    printf("Outside while");
-}
 
 char** processCommand(char command[]) {
     char **args = 0;
@@ -138,6 +82,55 @@ int executePipes(char left_command[], char right_command[]) {
 
 }
 
+
+int runTerminal() {
+    int ch, position = 0, history_index = 0;
+    int y, x; 
+    char command[255] = { 0 };
+    char *hello = "heyyy";
+    char **history = (char**)malloc(sizeof(char) * 10);
+    
+    initscr();
+    raw();
+    keypad(stdscr, TRUE);
+    printw("Welcome to Terminal");
+
+    do {
+        noecho();
+        ch = getch();
+        getyx(stdscr, y, x);
+        if(KEY_UP == ch) {
+            move(y, 0);      
+            clrtoeol();  
+            printw("Up Key");
+        } else if(KEY_DOWN == ch) {
+            move(y, 0);      
+            clrtoeol();  
+            printw("Down Key");
+        } else if(10 == ch) {
+            printw("\nShit: %s", command);
+            history[history_index] = malloc(sizeof(char) * position);
+            strcpy(history[history_index], command);
+            memset(command, 0, position);
+            printw("\nhistory here: %s\n", history[history_index]);
+            position = 0; 
+            history_index++;
+        } else {
+            command[position] = (char)ch;
+            position++;
+            printw("%c", ch);
+        }
+
+    } while(KEY_END != ch);
+    endwin();
+
+    for (int i=0; i<10; i++) {
+        free(history[i]);
+    }
+    free(history);
+
+}
+
 int main() {
 
     char s1[] = "ping -c 5 google.com";
@@ -147,25 +140,14 @@ int main() {
 
     vector v;
     vectorInit(&v);
-    vectorAdd(&v,s1);
-    vectorAdd(&v,s2);
-
+    //printf("%s\n", (char *) vectorGet(&v, 0));
     // for (int i = 0; i < vectorTotal(&v); i++)
     //     printf("%s\n", (char *) vectorGet(&v, i));
     // printf("\n");
 
     int ch;
     char command[100];
-    searchHistory();
-            // if(searchHistory() == 0) {
-            //     scanf("%s",command);
-            //     printf("The Entered string");
-            // }
-            //break;
-        //     printf("wrong input \n");
-
-        // break;
-        
+    runTerminal();
     
     return 0;
 }
