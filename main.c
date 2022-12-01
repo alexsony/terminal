@@ -7,6 +7,18 @@
 
 #include "vector.h"
 
+char* getDirectory() {
+    static char cwd[255];
+    getcwd(cwd, sizeof(cwd));
+    return cwd;
+}
+
+char *getUser() {
+    static char username[255];
+    getlogin_r(username,255);
+    return username;
+}
+
 char** processCommand(char command[]) {
     char **args = 0;
     const char *delim = " ";
@@ -87,16 +99,17 @@ int runTerminal() {
     int ch, position = 0, history_index = 0;
     int y, x; 
     char command[255] = { 0 };
-    char *hello = "heyyy";
     char **history = (char**)malloc(sizeof(char) * 10);
     
     initscr();
     raw();
     keypad(stdscr, TRUE);
-    printw("Welcome to Terminal");
+    printw("Welcome to Terminal\n");
+    printw("%s:%s$",getUser(),getDirectory());
 
     do {
         noecho();
+
         ch = getch();
         getyx(stdscr, y, x);
         if(KEY_UP == ch) {
@@ -108,17 +121,23 @@ int runTerminal() {
             clrtoeol();  
             printw("Down Key");
         } else if(10 == ch) {
-            printw("\nShit: %s", command);
+            printw("\nCommand: %s", command);
             history[history_index] = malloc(sizeof(char) * position);
             strcpy(history[history_index], command);
             memset(command, 0, position);
             printw("\nhistory here: %s\n", history[history_index]);
             position = 0; 
             history_index++;
+            printw("%s:%s$",getUser(),getDirectory());
+
         } else {
             command[position] = (char)ch;
             position++;
-            printw("%c", ch);
+            // move(y, strlen(getDirectory()));
+            move(y, 0);
+            printw("%s:%s$%s", getUser(),getDirectory(),command);
+            // printw("%s",command);
+
         }
 
     } while(KEY_END != ch);
