@@ -99,7 +99,7 @@ int executePipes(char left_command[], char right_command[]) {
 
 int runTerminal() {
     int ch, position = 0, history_index = 0;
-    int y, x, history_memory = 10; 
+    int y, x, history_memory = 10, history_search = 0; 
     char command[255] = { 0 };
     char **history = (char**)malloc(sizeof(char *) * history_memory);
     
@@ -111,31 +111,34 @@ int runTerminal() {
 
     do {
         noecho();
-
         ch = getch();
         getyx(stdscr, y, x);
+
         switch(ch) {
         case KEY_UP:
             move(y, 0);      
             clrtoeol();  
-            printw("Up Key");
+            if (history_index > history_search) history_search++;
+            printw("UP: %s", history[history_index - history_search]);
             break;
 
         case KEY_DOWN:
             move(y, 0);      
             clrtoeol();  
-            printw("Down Key");
+            if (1 < history_search) history_search--;
+            printw("DOWN: %s",history[history_index - history_search]);
             break;
 
         case KEY_ENTER_MAIN:
             printw("\nCommand: %s", command);
             history[history_index] = (char *)malloc(sizeof(char) * position);
 
-            ///strcpy(history[history_index], command);
+            strcpy(history[history_index], command);
             memset(command, 0, position);
-            //printw("\nhistory here: %s\n", history[history_index]);
+            printw("\nhistory here: %s\n", history[history_index]);
             position = 0; 
             history_index++;
+            history_search = 0;
 
             if (history_index > history_memory) {
                 history_memory *= 2;
