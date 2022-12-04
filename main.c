@@ -7,6 +7,8 @@
 
 #include "vector.h"
 
+#define KEY_ENTER_MAIN 10
+
 char* getDirectory() {
     static char cwd[255];
     getcwd(cwd, sizeof(cwd));
@@ -97,9 +99,9 @@ int executePipes(char left_command[], char right_command[]) {
 
 int runTerminal() {
     int ch, position = 0, history_index = 0;
-    int y, x; 
+    int y, x, history_memory = 10; 
     char command[255] = { 0 };
-    char **history = (char**)malloc(sizeof(char) * 10);
+    char **history = (char**)malloc(sizeof(char *) * history_memory);
     
     initscr();
     raw();
@@ -112,38 +114,51 @@ int runTerminal() {
 
         ch = getch();
         getyx(stdscr, y, x);
-        if(KEY_UP == ch) {
+        switch(ch) {
+        case KEY_UP:
             move(y, 0);      
             clrtoeol();  
             printw("Up Key");
-        } else if(KEY_DOWN == ch) {
+            break;
+
+        case KEY_DOWN:
             move(y, 0);      
             clrtoeol();  
             printw("Down Key");
-        } else if(10 == ch) {
+            break;
+
+        case KEY_ENTER_MAIN:
             printw("\nCommand: %s", command);
-            history[history_index] = malloc(sizeof(char) * position);
-            strcpy(history[history_index], command);
+            history[history_index] = (char *)malloc(sizeof(char) * position);
+
+            ///strcpy(history[history_index], command);
             memset(command, 0, position);
-            printw("\nhistory here: %s\n", history[history_index]);
+            //printw("\nhistory here: %s\n", history[history_index]);
             position = 0; 
             history_index++;
+
+            if (history_index > history_memory) {
+                history_memory *= 2;
+                history = realloc(history, sizeof(char *) * history_memory);
+            }
             printw("%s:%s$",getUser(),getDirectory());
 
-        } else {
+            break;
+
+        default:
             command[position] = (char)ch;
             position++;
             // move(y, strlen(getDirectory()));
             move(y, 0);
             printw("%s:%s$%s", getUser(),getDirectory(),command);
-            // printw("%s",command);
+            //printw("%s",command);
 
         }
 
     } while(KEY_END != ch);
     endwin();
 
-    for (int i=0; i<10; i++) {
+    for (int i=0; i<history_index; i++) {
         free(history[i]);
     }
     free(history);
@@ -157,16 +172,10 @@ int main() {
     //executePipes(s1,s2);
     //processCommand(s1);
 
-    vector v;
-    vectorInit(&v);
-    //printf("%s\n", (char *) vectorGet(&v, 0));
-    // for (int i = 0; i < vectorTotal(&v); i++)
-    //     printf("%s\n", (char *) vectorGet(&v, i));
-    // printf("\n");
-
     int ch;
     char command[100];
     runTerminal();
+    // execlp("ping", "ping", "-c", "1","google.com",NULL);
     
     return 0;
 }
