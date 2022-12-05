@@ -5,8 +5,6 @@
 #include <sys/wait.h>
 #include <ncurses.h>
 
-#include "vector.h"
-
 #define KEY_ENTER_MAIN 10
 
 char* getDirectory() {
@@ -107,6 +105,7 @@ int runTerminal() {
     initscr();
     raw();
     keypad(stdscr, TRUE);
+    scrollok(stdscr, TRUE);
     printw("Welcome to Terminal\n");
     printw("%s:%s$",getUser(),getDirectory());
 
