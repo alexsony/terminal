@@ -100,6 +100,7 @@ int executePipes(char left_command[], char right_command[]) {
 int runTerminal() {
     int ch, position = 0, history_index = 0;
     int y, x, history_memory = 10, history_search = 0; 
+    int command_length = 0;
     char command[255] = { 0 };
     char **history = (char**)malloc(sizeof(char *) * history_memory);
     
@@ -120,6 +121,7 @@ int runTerminal() {
             clrtoeol();  
             if (history_index > history_search) history_search++;
             printw("UP: %s", history[history_index - history_search]);
+            strcpy(command,history[history_index - history_search]);
             break;
 
         case KEY_DOWN:
@@ -127,14 +129,16 @@ int runTerminal() {
             clrtoeol();  
             if (1 < history_search) history_search--;
             printw("DOWN: %s",history[history_index - history_search]);
+            strcpy(command,history[history_index - history_search]);
             break;
 
         case KEY_ENTER_MAIN:
             printw("\nCommand: %s", command);
-            history[history_index] = (char *)malloc(sizeof(char) * position);
+            command_length = strlen(command);
+            history[history_index] = (char *)malloc(sizeof(char) * command_length);
 
             strcpy(history[history_index], command);
-            memset(command, 0, position);
+            memset(command, 0, command_length);
             printw("\nhistory here: %s\n", history[history_index]);
             position = 0; 
             history_index++;
