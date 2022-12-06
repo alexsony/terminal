@@ -85,6 +85,37 @@ char** processCommand(char command[]) {
     
 }
 
+
+int processPipe(char command[], char *** split, const char *delim) {
+    char *tmp_str = command;
+    int count = 0; 
+
+    //Count elements
+    while (*tmp_str)
+    {
+        if (delim[0] == *tmp_str) count++;
+        tmp_str++; 
+    }
+
+    count++; //for NULL
+    *split = (char **)malloc(sizeof(char*) * count);
+    char *token = strtok(command,delim);
+
+    count = 0;
+    while(token != NULL) {
+        (*split)[count] = (char*) malloc(sizeof(char) * strlen(token));
+        // printf("Token: %s \n",token);
+        (*split)[count] = token;
+        // printf("Token: %s \n",split[count]);
+        token = strtok(NULL,delim);
+        count++;
+    }
+    // printf("Token: %s \n",split[1]);
+    (*split)[count] = NULL;
+
+    return --count ;
+}
+
 int executeCommand(char command[]) {
     int pid = fork();
     if (pid < 0) {
@@ -137,7 +168,8 @@ int executePipes(char left_command[], char right_command[]) {
         dup2(fd[0], STDIN_FILENO);
         close(fd[0]);
         close(fd[1]);
-        execlp("cat", "cat", NULL);
+        char **right = processCommand(right_command);
+        execvp(right[0], right);
     }
 
     close(fd[0]);
@@ -148,6 +180,14 @@ int executePipes(char left_command[], char right_command[]) {
 
     return 0;
 
+}
+
+void runCommand(char command[]) {
+    char **split_command;
+    int no_pipes = processPipe(command, &split_command, "|");
+
+    if (0 == no_pipes) executeCommand(split_command[no_pipes]);
+    else executePipes(split_command[0], split_command[1]);
 }
 
 //VT100 escape codes
@@ -186,8 +226,8 @@ int runTerminal() {
             continue;
 
         case KEY_ENTER:
-            //printf("\33\r\nCommand: %s\n", command); 
-            executeCommand(command);
+            printf("\n"); 
+            runCommand(command);
 
             command_length = strlen(command); 
             history[history_index] = (char *)malloc(sizeof(char) * command_length);
