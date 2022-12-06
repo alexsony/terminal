@@ -55,38 +55,7 @@ int getch() {
     return ch;
 }
 
-char** processCommand(char command[]) {
-    char **args = 0;
-    const char *delim = " ";
-    char *tmp_str = command;
-    int count = 0; 
-
-    //Count elements
-    while (*tmp_str)
-    {
-        if (delim[0] == *tmp_str) count++;
-        tmp_str++; 
-    }
-
-    count++; //for NULL
-    args = malloc(sizeof(char*) * count);
-    char *token = strtok(command,delim);
-
-    count = 0;
-    while(token != NULL) {
-        //printf("Token: %s \n",token);
-        args[count] = token;
-        token = strtok(NULL,delim);
-        count++;
-    }
-    args[count] = NULL;
-
-    return args;
-    
-}
-
-
-int processPipe(char command[], char *** split, const char *delim) {
+int processInput(char command[], char *** split, const char *delim) {
     char *tmp_str = command;
     int count = 0; 
 
@@ -123,8 +92,10 @@ int executeCommand(char command[]) {
     }
 
     if (pid == 0) {
-        char **cmd = processCommand(command); 
+        char **cmd; 
+        processInput(command, &cmd, " "); 
         int status_code = execvp(cmd[0], cmd);
+        free(cmd);
         if (-1 == status_code) {
             printf("\n%s: command not found!", command);
             exit(1);
@@ -154,8 +125,11 @@ int executePipes(char left_command[], char right_command[]) {
         dup2(fd[1], STDOUT_FILENO);
         close(fd[0]);
         close(fd[1]);
-        char **left = processCommand(left_command);
+
+        char **left;
+        processInput(left_command, &left, " ");
         execvp(left[0], left);
+        free(left);
     }
 
     int pid2 = fork();
@@ -168,8 +142,11 @@ int executePipes(char left_command[], char right_command[]) {
         dup2(fd[0], STDIN_FILENO);
         close(fd[0]);
         close(fd[1]);
-        char **right = processCommand(right_command);
+
+        char **right;
+        processInput(right_command, &right, " ");
         execvp(right[0], right);
+        free(right);
     }
 
     close(fd[0]);
@@ -184,10 +161,12 @@ int executePipes(char left_command[], char right_command[]) {
 
 void runCommand(char command[]) {
     char **split_command;
-    int no_pipes = processPipe(command, &split_command, "|");
+    int no_pipes = processInput(command, &split_command, "|");
 
     if (0 == no_pipes) executeCommand(split_command[no_pipes]);
     else executePipes(split_command[0], split_command[1]);
+
+    free(split_command);
 }
 
 //VT100 escape codes
@@ -265,16 +244,6 @@ int runTerminal() {
 
 int main() {
 
-    char s1[] = "ping -c 5 google.com";
-    char s2[] = "grep rtt";
-    //executePipes(s1,s2);
-    //processCommand(s1);
-
-    int ch;
-    char command[100];
     runTerminal();
-    // execlp("ping", "ping", "-c", "1","google.com",NULL);
-    // executeCommand(s1);
-    // test();
     return 0;
 }
