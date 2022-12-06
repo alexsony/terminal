@@ -16,6 +16,28 @@
 #define DELIMITER 27
 
 
+int printLogo() {
+
+    printf("\033[H\033[J");
+    //read any text file from currect directory
+    char const* const fileName = "/home/alex/workplace/custom_terminal/logo.txt";
+
+    FILE* file = fopen(fileName, "r"); 
+
+    if(!file){
+    printf("\n Unable to open : %s ", fileName);
+    return -1;
+    }
+
+    char line[500];
+
+    while (fgets(line, sizeof(line), file)) {
+    printf("%s", line); 
+    }
+    fclose(file);
+    return 0;
+}
+
 char* getDirectory() {
     static char cwd[255];
     getcwd(cwd, sizeof(cwd));
@@ -177,7 +199,8 @@ int runTerminal() {
     char command[255] = { 0 };
     char **history = (char**)malloc(sizeof(char *) * history_memory);
 
-    printf("%s:%s$",getUser(),getDirectory());
+    printLogo();
+    printf("\r%s:%s$",getUser(),getDirectory());
     do {
         ch = getch();
         switch(ch) {
@@ -205,10 +228,9 @@ int runTerminal() {
             continue;
 
         case KEY_ENTER:
-            printf("\n"); 
-            runCommand(command);
-
             command_length = strlen(command); 
+            if(command_length) runCommand(command);
+
             history[history_index] = (char *)malloc(sizeof(char) * command_length);
 
             strcpy(history[history_index], command);
@@ -245,5 +267,6 @@ int runTerminal() {
 int main() {
 
     runTerminal();
+    // printLogo();
     return 0;
 }
