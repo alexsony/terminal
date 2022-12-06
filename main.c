@@ -12,6 +12,7 @@
 #define KEY_DOWN 66
 #define KEY_RIGHT 67
 #define KEY_LEFT 68
+#define KEY_BACKSPACE 127
 #define DELIMITER 27
 
 
@@ -160,7 +161,6 @@ int runTerminal() {
     printf("%s:%s$",getUser(),getDirectory());
     do {
         ch = getch();
-
         switch(ch) {
         case KEY_END:
             break;
@@ -177,6 +177,12 @@ int runTerminal() {
             printf("\33[2K\rDOWN: %s", history[history_index - history_search]);
             strcpy(command,history[history_index - history_search]);
             fflush(stdout); 
+            continue;
+        
+        case KEY_BACKSPACE:
+            command[position]  = '\0';
+            position--;
+            printf("\33[2K\r%s:%s$%s", getUser(),getDirectory(),command);
             continue;
 
         case KEY_ENTER:
