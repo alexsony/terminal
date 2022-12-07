@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.10)
 # set the project name
 project(Terminal)
 
-set(SOURCES)
+set(SOURCES
+    src/Process_Manager.c)
 
 include_directories(include)
 
