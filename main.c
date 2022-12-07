@@ -70,15 +70,12 @@ int getch() {
         ch = getchar();
         ch = getchar();
     }
-    //ch=getchar();
-    //ch=getchar();
     //enable echo flag
     tcsetattr(STDIN_FILENO, TCSANOW, &oldtc);
     return ch;
 }
 
 int processInput(char command[], char *** split, const char *delim) {
-    printf("%s", command);
     char *tmp_str = command;
     int count = 0; 
 
@@ -96,13 +93,10 @@ int processInput(char command[], char *** split, const char *delim) {
     count = 0;
     while(token != NULL) {
         (*split)[count] = (char*) malloc(sizeof(char) * strlen(token));
-        // printf("Token: %s \n",token);
         (*split)[count] = token;
-        // printf("Token: %s \n",split[count]);
         token = strtok(NULL,delim);
         count++;
     }
-    // printf("Token: %s \n",split[1]);
     (*split)[count] = NULL;
 
     return --count ;
@@ -280,9 +274,9 @@ void runCommand(char command[]) {
     char **split_command;
     int no_pipes = processInput(command, &split_command, "|");
 
-    if (0 == no_pipes) executeCommand(split_command[no_pipes]);
+    if (0 == no_pipes) executeCommand(command);
     else if(1 == no_pipes) executePipes(split_command[0], split_command[1]);
-    // else multiPipes(split_command, no_pipes);
+    else multiPipes(split_command, no_pipes);
 
     free(split_command);
 }
@@ -296,7 +290,7 @@ int runTerminal() {
     char **history = (char**)malloc(sizeof(char *) * history_memory);
 
     printLogo();
-    printf("\r%s:%s$",getUser(),getDirectory());
+    printf("\r%s:%s$ ",getUser(),getDirectory());
     do {
         ch = getch();
         switch(ch) {
@@ -304,23 +298,29 @@ int runTerminal() {
             break;
 
         case KEY_UP:
-            if (history_index > history_search) history_search++;
-            printf("\33[2K\rUP: %s", history[history_index - history_search]);
-            strcpy(command,history[history_index - history_search]);
-            fflush(stdout);
+            if (history_index > history_search) {
+                history_search++;
+                printf("\33[2K\rUP: %s", history[history_index - history_search]);
+                memset(command, 0, command_length);
+                strcpy(command,history[history_index - history_search]);
+                fflush(stdout);
+            }
             continue;
         
         case KEY_DOWN:
-            if (1 < history_search) history_search--;
-            printf("\33[2K\rDOWN: %s", history[history_index - history_search]);
-            strcpy(command,history[history_index - history_search]);
-            fflush(stdout); 
+            if (1 < history_search) {
+                history_search--;
+                printf("\33[2K\rDOWN: %s", history[history_index - history_search]);
+                strcpy(command,history[history_index - history_search]);
+                fflush(stdout); 
+            }
             continue;
         
         case KEY_BACKSPACE:
             command[position]  = '\0';
             position--;
-            printf("\33[2K\r%s:%s$%s", getUser(),getDirectory(),command);
+            printf("\33[2K\r%s:%s$ %s", getUser(),getDirectory(),command);
+            fflush(stdout); 
             continue;
 
         case KEY_ENTER:
@@ -328,54 +328,41 @@ int runTerminal() {
             if(command_length) {
                 history[history_index] = (char *)malloc(sizeof(char) * command_length);
                 strcpy(history[history_index], command);
+                printf("\n");
                 runCommand(command);
+
+                history_index++;
+                history_search = 0;
             }
 
             memset(command, 0, command_length);
-            // printf("\nHistory : %s\n", history[history_index]);
-            printf("\n");
             position = 0; 
-            history_index++;
-            history_search = 0;
 
             if (history_index > history_memory) {
                 history_memory *= 2;
                 history = realloc(history, sizeof(char *) * history_memory);
             }
-            printf("\33[2K\r%s:%s$",getUser(),getDirectory());
+            printf("\n\33[2K\r%s:%s$ ",getUser(),getDirectory());
             continue;
 
         default:
             command[position] = (char)ch;
             position++;
-            printf("\33[2K\r%s:%s$%s", getUser(),getDirectory(),command);
+            printf("\33[2K\r%s:%s$ %s", getUser(),getDirectory(),command);
             fflush(stdout); 
         } 
         
     } while (KEY_END != ch);
     printf("\nBye Bye!\n");
 
-    for (int i=0; i<history_index; i++) {
-        free(history[i]);
-    }
+    // for (int i=0; i<history_index; i++) {
+    //     free(history[i]);
+    // }
     free(history);
 }
 
 int main() {
 
-    char command1[] = "ps aux";
-    char command2[] = "grep root";
-    char command3[] = "grep sbin";
-    char **split_command;
-
-    char command[] = "ps aux | grep root | grep sbin | gredqp usr";
-    int pipes = processInput(command, &split_command, "|");
-
     runTerminal();
-    // multiPipes(split_command, pipes);
-    // printf("%s", command[0]);
-    // test1(command1, command2, command3);
-
-    // printLogo();
     return 0;
 }
