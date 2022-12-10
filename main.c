@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/ioctl.h>
 #include <termios.h>
 
 #include "Process_Manager.h"
@@ -51,9 +52,16 @@ char *getUser() {
     return username;
 }
 
+void getData(char *data) {
+    memset(data,0,strlen(data));
+    strcat(data, getUser());
+    strcat(data, ":~");
+    strcat(data, getDirectory());
+    strcat(data, "$ ");
+}
+
 int getch() {
-    struct termios oldtc;
-    struct termios newtc;
+    static struct termios oldtc, newtc;
     int ch;
     //get the parameters asociated with the terminal 
     tcgetattr(STDIN_FILENO, &oldtc);
@@ -92,14 +100,19 @@ void runCommand(char command[]) {
 int runTerminal() {
     int ch, position = 0, history_index = 0;
     int history_memory = 10, history_search = 0;
-    int command_length = 0;
+    int command_length = 0, up_lines = 1, check_window = 0, count_lines = 0;
     char command[255] = { 0 };
+    char details[255];
     char **history = (char**)malloc(sizeof(char *) * history_memory);
 
+    struct winsize w;
+
     printLogo();
-    printf("\r%s:%s$ ",getUser(),getDirectory());
+    printf("\r%s:~%s$ ",getUser(),getDirectory());
     do {
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
         ch = getch();
+        getData(details);
         switch(ch) {
         case KEY_END:
             break;
@@ -107,7 +120,7 @@ int runTerminal() {
         case KEY_UP:
             if (history_index > history_search) {
                 history_search++;
-                printf("\33[2K\rUP: %s", history[history_index - history_search]);
+                printf("\33[2K\r%s%s",details, history[history_index - history_search]);
                 memset(command, 0, command_length);
                 strcpy(command,history[history_index - history_search]);
                 fflush(stdout);
@@ -117,7 +130,7 @@ int runTerminal() {
         case KEY_DOWN:
             if (1 < history_search) {
                 history_search--;
-                printf("\33[2K\rDOWN: %s", history[history_index - history_search]);
+                printf("\33[2K\r%s%s", details, history[history_index - history_search]);
                 strcpy(command,history[history_index - history_search]);
                 fflush(stdout); 
             }
@@ -126,7 +139,7 @@ int runTerminal() {
         case KEY_BACKSPACE:
             command[position]  = '\0';
             position--;
-            printf("\33[2K\r%s:%s$ %s", getUser(),getDirectory(),command);
+            printf("\33[2K\r%s%s",details,command);
             fflush(stdout); 
             continue;
 
@@ -140,6 +153,7 @@ int runTerminal() {
 
                 history_index++;
                 history_search = 0;
+                up_lines = 1;
             }
 
             memset(command, 0, command_length);
@@ -147,22 +161,32 @@ int runTerminal() {
 
             if (history_index > history_memory) {
                 history_memory *= 2;
-                history = realloc(history, sizeof(char *) * history_memory);
+                history = (char**)realloc(history, sizeof(char *) * history_memory);
             }
-            printf("\n\33[2K\r%s:%s$ ",getUser(),getDirectory());
+            printf("\n\r%s",details);
             continue;
 
         default:
             command[position] = (char)ch;
             position++;
-            printf("\33[2K\r%s:%s$ %s", getUser(),getDirectory(),command);
-            fflush(stdout); 
+            check_window = strlen(command) + strlen(details);
+            if (check_window > w.ws_col) {
+                count_lines++;
+                if (count_lines % w.ws_col == 0) {
+                    up_lines++; 
+                    count_lines = 0;
+                }
+                printf("\033[%dA[K\r%s%s", up_lines, details,command);
+            } else {
+                printf("\r%s%s", details,command);
+
+            }
         } 
         
     } while (KEY_END != ch);
     printf("\nBye Bye!\n");
 
-    // for (int i=0; i<history_index; i++) {
+    // for (int i=0; i<history_memory; i++) {
     //     free(history[i]);
     // }
     free(history);
@@ -171,5 +195,6 @@ int runTerminal() {
 int main() {
 
     runTerminal();
+
     return 0;
 }
