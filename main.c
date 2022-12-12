@@ -84,7 +84,6 @@ int getch() {
     return ch;
 }
 
-
 void runCommand(char command[]) {
     char **split_command;
     int no_pipes = processInput(command, &split_command, "|");

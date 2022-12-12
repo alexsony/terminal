@@ -33,6 +33,40 @@ int processInput(char command[], char *** split, const char *delim) {
     return --count ;
 }
 
+int handleCustomCommand(const char *command, char *const argv[]) {
+    int no_of_command = 2, search_command = 0, status = 1;
+    char * list_of_commands[no_of_command];
+
+    list_of_commands[0] = "help";
+    list_of_commands[1] = "version";
+
+    for (int i = 0; i < no_of_command; ++i) {
+        if (strcmp(command, list_of_commands[i]) == 0) {
+            search_command = i + 1;
+            break;
+        }
+    }
+
+    switch (search_command)
+    {
+    case 1:
+        printf("You can use the following commands:\n");
+        for (int i = 0; i < no_of_command; ++i) {
+            printf("%d: %s\n",i, list_of_commands[i]);
+        }
+        status = 0;
+        break;
+    case 2:
+        printf("Version 1.00 by Alexandru Isvoranu\n");
+        status = 0;
+        break;
+    default:
+        break;
+    }
+
+    return status;
+}
+
 int executeCommand(char command[]) {
     int pid = fork();
     if (pid < 0) {
@@ -42,11 +76,16 @@ int executeCommand(char command[]) {
     if (pid == 0) {
         char **cmd; 
         processInput(command, &cmd, " "); 
-        int status_code = execvp(cmd[0], cmd);
-        free(cmd);
-        if (-1 == status_code) {
-            printf("\n%s: command not found!", command);
-            exit(1);
+        int check_type_command = handleCustomCommand(cmd[0], cmd);
+        if (check_type_command) {
+            int status_code = execvp(cmd[0], cmd);
+            free(cmd);
+            if (-1 == status_code) {
+                printf("\n%s: command not found!", command);
+                exit(1);
+            }
+        } else {
+            exit(EXIT_SUCCESS);
         }
     } else {
         wait(NULL);
