@@ -4,7 +4,8 @@ cmake_minimum_required(VERSION 3.10)
 project(Terminal)
 
 set(SOURCES
-    src/Process_Manager.c)
+    src/Process_Manager.c
+    src/Command_Manager.c)
 
 include_directories(include)
 

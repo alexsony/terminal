@@ -7,6 +7,7 @@
 #include <termios.h>
 
 #include "Process_Manager.h"
+#include "Command_Manager.h"
 
 #define KEY_ENTER 10
 #define KEY_END 70
@@ -89,8 +90,7 @@ void runCommand(char command[]) {
     int no_pipes = processInput(command, &split_command, "|");
 
     if (0 == no_pipes) executeCommand(command);
-    else if(1 == no_pipes) executePipes(split_command[0], split_command[1]);
-    else multiPipes(split_command, no_pipes);
+    else executePipes(split_command, no_pipes);
 
     free(split_command);
 }

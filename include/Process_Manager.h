@@ -1,10 +1,10 @@
 #ifndef PROCESS_MANAGER_H
 #define PROCESS_MANAGER_H
 
-int processInput(char [], char *** , const char *);
-int handleCustomCommand(const char *, char *const []);
+void set_read(int* );
+void set_write(int* );
+int fork_and_chain(int* , int* , char []);
 int executeCommand(char []);
-int executePipes(char [], char []);
-int multiPipes(char **, int );
+int executePipes(char **, int ); 
 
 #endif
