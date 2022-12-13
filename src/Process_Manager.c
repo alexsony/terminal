@@ -3,28 +3,48 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <time.h>
 
 #include "Process_Manager.h"
 #include "Command_Manager.h"
 
+/* msleep(): Sleep for the requested number of milliseconds. */
+int msleep(long msec)
+{
+    struct timespec ts;
+    int res;
 
-void set_read(int* lpipe)
+    if (msec < 0) return -1;
+    
+
+    ts.tv_sec = msec / 1000;
+    ts.tv_nsec = (msec % 1000) * 1000000;
+
+    do {
+        res = nanosleep(&ts, &ts);
+    } while (res);
+
+    return res;
+}
+
+void setRead(int* lpipe)
 {
     dup2(lpipe[0], STDIN_FILENO);
     close(lpipe[0]); // we have a copy already, so close it
     close(lpipe[1]); // not using this end
 }
 
-void set_write(int* rpipe)
+void setWrite(int* rpipe)
 {
     dup2(rpipe[1], STDOUT_FILENO);
     close(rpipe[0]); // not using this end
     close(rpipe[1]); // we have a copy already, so close it
 }
 
-int fork_and_chain(int* lpipe, int* rpipe, char command[])
+int forkAndChain(int* lpipe, int* rpipe, char command[])
 {
     int pid = fork();
+    int status;
 
     if (pid < 0) {
         return 1;
@@ -33,10 +53,10 @@ int fork_and_chain(int* lpipe, int* rpipe, char command[])
     if(pid == 0)
     {
         if(lpipe) // there's a pipe from the previous process
-            set_read(lpipe);
+            setRead(lpipe);
         // else you may want to redirect input from somewhere else for the start
         if(rpipe) // there's a pipe to the next process
-            set_write(rpipe);
+            setWrite(rpipe);
         // else you may want to redirect out to somewhere else for the end
         // sleep(1);
         char **cmd;
@@ -49,8 +69,7 @@ int fork_and_chain(int* lpipe, int* rpipe, char command[])
             _exit(EXIT_FAILURE);
         }
         exit(EXIT_SUCCESS);
-    } 
-
+    }
 }
 
 int executeCommand(char command[]) {
@@ -73,10 +92,8 @@ int executeCommand(char command[]) {
         } else {
             exit(EXIT_SUCCESS);
         }
-    } 
-    wait(NULL);
-    sleep(1);
-
+    }
+    waitpid(pid,NULL, 0);
     return 0;
 }
 
@@ -89,7 +106,7 @@ int executePipes(char **command, int no_pipes) {
     pipe(rpipe);  
 
     // first child takes input from somewhere else
-    fork_and_chain(NULL, rpipe, command[0]);  
+    forkAndChain(NULL, rpipe, command[0]);  
     // output pipe becomes input for the next process.
     lpipe[0] = rpipe[0];
     lpipe[1] = rpipe[1];
@@ -98,7 +115,7 @@ int executePipes(char **command, int no_pipes) {
     for(int i = 1; i < no_pipes - 1; i++)
     {
         pipe(rpipe); // make the next output pipe
-        fork_and_chain(lpipe, rpipe, command[i]);
+        forkAndChain(lpipe, rpipe, command[i]);
         close(lpipe[0]); // both ends are attached, close them on parent
         close(lpipe[1]);
         lpipe[0] = rpipe[0]; // output pipe becomes input pipe
@@ -106,15 +123,14 @@ int executePipes(char **command, int no_pipes) {
     }
 
     // fork the last one, its output goes somewhere else      
-    fork_and_chain(lpipe, NULL, command[no_pipes]);
+    forkAndChain(lpipe, NULL, command[no_pipes]);
     close(lpipe[0]);
     close(lpipe[1]);
 
     for (int i = 0; i < no_pipes; i++) {
         wait(NULL);
-        sleep(1);
+        msleep(50);
     }
-    // exit(EXIT_SUCCESS);
 
     return 0;
 }

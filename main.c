@@ -162,6 +162,7 @@ int runTerminal() {
                 history_memory *= 2;
                 history = (char**)realloc(history, sizeof(char *) * history_memory);
             }
+            fflush(stdout);
             printf("\n\r%s",details);
             continue;
 
