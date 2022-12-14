@@ -8,6 +8,7 @@
 
 #include "Process_Manager.h"
 #include "Command_Manager.h"
+#include "diff.h"
 
 #define KEY_ENTER 10
 #define KEY_END 70
@@ -194,7 +195,13 @@ int runTerminal() {
 
 int main() {
 
-    runTerminal();
+    // runTerminal();
+
+    char *fname_1 = "/home/alex/workplace/custom_terminal/file1.txt";
+    char *fname_2 = "/home/alex/workplace/custom_terminal/file2.txt";
+
+    // Pass the filenames to edit_path function
+    executeDiff(fname_1, fname_2);
 
     return 0;
 }

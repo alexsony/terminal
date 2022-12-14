@@ -5,7 +5,8 @@ project(Terminal)
 
 set(SOURCES
     src/Process_Manager.c
-    src/Command_Manager.c)
+    src/Command_Manager.c
+    src/diff.c)
 
 include_directories(include)
 
