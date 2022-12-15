@@ -197,11 +197,13 @@ int main() {
 
     // runTerminal();
 
-    char *fname_1 = "/home/alex/workplace/custom_terminal/file1.txt";
-    char *fname_2 = "/home/alex/workplace/custom_terminal/file2.txt";
-
-    // Pass the filenames to edit_path function
-    executeDiff(fname_1, fname_2);
+    int argc;
+    char **command;
+    char input[] = {"diff -a /home/alex/workplace/custom_terminal/file1.txt /home/alex/workplace/custom_terminal/file2.txt"};
+ 
+    argc = processInput(input, &command, " ");  
+   
+    executeDiff(argc, command);
 
     return 0;
 }
