@@ -9,8 +9,7 @@
 #include "Command_Manager.h"
 
 /* msleep(): Sleep for the requested number of milliseconds. */
-int msleep(long msec)
-{
+int msleep(long msec) {
     struct timespec ts;
     int res;
 
@@ -26,22 +25,19 @@ int msleep(long msec)
     return res;
 }
 
-void setRead(int* lpipe)
-{
+void setRead(int* lpipe) {
     dup2(lpipe[0], STDIN_FILENO);
     close(lpipe[0]); // we have a copy already, so close it
     close(lpipe[1]); // not using this end
 }
 
-void setWrite(int* rpipe)
-{
+void setWrite(int* rpipe) {
     dup2(rpipe[1], STDOUT_FILENO);
     close(rpipe[0]); // not using this end
     close(rpipe[1]); // we have a copy already, so close it
 }
 
-int forkAndChain(int* lpipe, int* rpipe, char command[])
-{
+int forkAndChain(int* lpipe, int* rpipe, char command[]) {
     int pid = fork();
     int status_code;
 

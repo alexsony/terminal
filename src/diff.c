@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,6 +46,10 @@ int readFile(char* arr[], char* name)
 
 void printDiff(int d_table[MAXLINES][MAXLINES], char* file_1[], char* file_2[], int f_length_1, int f_length_2) {
 
+    int max = f_length_1 > f_length_2 ? f_length_1 : f_length_2;
+    char *output[max];
+    int output_index = 0;
+    int is_equal = 1;
     while ((f_length_1 > 0) && (f_length_2 > 0)) {
         //lines are the same
         if (strcmp(file_1[f_length_1 - 1], file_2[f_length_2 - 1]) == 0) {
@@ -51,28 +57,41 @@ void printDiff(int d_table[MAXLINES][MAXLINES], char* file_1[], char* file_2[], 
             f_length_2--;
         //lines need to be changed
         } else if (d_table[f_length_1][f_length_2] == d_table[f_length_1 - 1][f_length_2 - 1] + 1) {
-            printf("%dc%d\n",f_length_1, f_length_2);
-            printf("< %s\n", file_1[f_length_1 - 1]);
-            printf("> %s\n", file_2[f_length_2 - 1]);
-            printf("---\n");
+            asprintf(&output[output_index],"%dc%d\n< %s\n> %s\n---\n",  f_length_1, 
+                                                f_length_2,
+                                                file_1[f_length_1 - 1],
+                                                file_2[f_length_2 - 1]);
             f_length_1--;
             f_length_2--;
+            output_index++;
+            is_equal = 0;
         //line need to be deleted
         } else if (d_table[f_length_1][f_length_2] == d_table[f_length_1 - 1][f_length_2] + 1) {
-            printf("delete line %s\n", file_1[f_length_1 - 1]);
+            asprintf(&output[output_index],"%dd\n< %s\n---\n", f_length_1 - 1, 
+                                       file_1[f_length_1 - 1]);
             f_length_1--;
+            output_index++;
+            is_equal = 0;
         //Add line
         } else if (d_table[f_length_1][f_length_2] == d_table[f_length_1][f_length_2 - 1] + 1) {
-            printf("%da%d\n", f_length_1,f_length_2);
-            printf("> %s\n", file_2[f_length_2- 1]);
-            printf("---\n");
+            asprintf(&output[output_index], "%da%d\n> %s\n---\n",    f_length_1,
+                                            f_length_2,             
+                                            file_2[f_length_2- 1]);
             f_length_2--;
+            output_index++;
+            is_equal = 0;
         }
     }
     for (int i = f_length_1 - 1; i >= 0; i--) {
-        printf("d%d\n", i);
-        printf("< %s\n",file_1[i]);
-        printf("---\n");
+        asprintf(&output[output_index],"%dd\n< %s\n---\n",  i, 
+                                    file_1[i]);
+        output_index++;
+        is_equal = 0;
+    }
+    if(OPTION_BRIEF) {
+        is_equal ? printf("Files are the same\n") : printf("Files are different\n");
+    } else {
+        for(int i = 0; i < output_index; i++) printf("%s", output[i]);
     }
 }
 

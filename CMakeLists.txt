@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 # set the project name
 project(Terminal)
+add_compile_options(-std=gnu99)
 
 set(SOURCES
     src/Process_Manager.c
