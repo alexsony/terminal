@@ -133,6 +133,9 @@ int runTerminal() {
                 printf("\33[2K\r%s%s", details, history[history_index - history_search]);
                 strcpy(command,history[history_index - history_search]);
                 fflush(stdout); 
+            } else {
+                printf("\33[2K\r%s", details);
+                memset(command, 0, command_length);
             }
             continue;
         
@@ -195,15 +198,15 @@ int runTerminal() {
 
 int main() {
 
-    // runTerminal();
+    runTerminal();
 
     int argc;
     char **command;
-    char input[] = {"diff -a /home/alex/workplace/custom_terminal/file1.txt /home/alex/workplace/custom_terminal/file2.txt"};
+    char input[] = {"diff -q ../file1.txt ../file2.txt"};
  
     argc = processInput(input, &command, " ");  
    
-    executeDiff(argc, command);
+    // executeDiff(argc, command);
 
     return 0;
 }

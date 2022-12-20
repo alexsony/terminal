@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "Command_Manager.h"
+#include "diff.h"
 
 int processInput(char command[], char *** split, const char *delim) {
     char *tmp_str = command;
@@ -31,12 +32,13 @@ int processInput(char command[], char *** split, const char *delim) {
     return --count ;
 }
 
-int handleCustomCommand(const char *command, char *const argv[]) {
-    int no_of_command = 2, search_command = 0, status = 1;
+int handleCustomCommand(const char *command, char * argv[], int no_argc) {
+    int no_of_command = 3, search_command = 0, status = 1;
     char * list_of_commands[no_of_command];
 
     list_of_commands[0] = "help";
     list_of_commands[1] = "version";
+    list_of_commands[2] = "diff";
 
     for (int i = 0; i < no_of_command; ++i) {
         if (strcmp(command, list_of_commands[i]) == 0) {
@@ -56,6 +58,10 @@ int handleCustomCommand(const char *command, char *const argv[]) {
         break;
     case 2:
         printf("Version 1.00 by Alexandru Isvoranu\n");
+        status = 0;
+        break;
+    case 3:
+        executeDiff(no_argc, argv);
         status = 0;
         break;
     default:

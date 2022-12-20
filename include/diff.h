@@ -11,6 +11,7 @@
 
 int OPTION_BRIEF;
 int OPTION_FORCECOMPARE;
+int IS_BINARY;
 
 
 int executeDiff(int , char *[]);

@@ -21,13 +21,14 @@ void freeMemory(char* arr[], int lineCount)
 void resetOptions(){
     OPTION_BRIEF = 0;
     OPTION_FORCECOMPARE = 0;
+    IS_BINARY = 0;
 }
 
 int readFile(char* arr[], char* name)
 {
     FILE *file;
     char line[MAXLENGTH];
-    int i = 0;
+    int index = 0;
     file = fopen(name, "r");
     if (file == NULL) {
         fprintf(stderr,"Can't open File: %s\n", name);
@@ -36,12 +37,20 @@ int readFile(char* arr[], char* name)
     while (fgets(line, MAXLENGTH, file) != NULL) {
         if (line[strlen(line) - 1] == '\n')
             line[strlen(line) - 1] = '\0';  //Removes newline char from end of string
-        arr[i] = malloc(sizeof(line));
-        strcpy(arr[i], line);
-        i++;
+        arr[index] = malloc(sizeof(line));
+        strcpy(arr[index], line);
+        index++;
+    }
+    for(int i = 0; i < index; ++i) {
+        for(int j = 0; j < strlen(arr[i]);j++)  {
+            if ((!isascii(arr[i][j]) || iscntrl(arr[i][j])) && !isspace(arr[i][j])) {
+                IS_BINARY = 1;
+                break;
+            }
+        }
     }
     fclose(file);
-    return i;
+    return index;
 }
 
 void printDiff(int d_table[MAXLINES][MAXLINES], char* file_1[], char* file_2[], int f_length_1, int f_length_2) {
@@ -90,7 +99,9 @@ void printDiff(int d_table[MAXLINES][MAXLINES], char* file_1[], char* file_2[], 
     }
     if(OPTION_BRIEF) {
         is_equal ? printf("Files are the same\n") : printf("Files are different\n");
-    } else {
+    } else if((1 == IS_BINARY) && (0 == OPTION_FORCECOMPARE)){
+        is_equal ? printf("Binary files are the same\n") : printf("Binary files are different\n");
+    }  else {
         for(int i = 0; i < output_index; i++) printf("%s", output[i]);
     }
 }
