@@ -18,7 +18,7 @@ void freeMemory(char* arr[], int lineCount)
         free(arr[i]);}
 }
 
-void resetOptions(){
+static void resetOptions(){
     OPTION_BRIEF = 0;
     OPTION_FORCECOMPARE = 0;
     IS_BINARY = 0;
@@ -161,5 +161,7 @@ for (int i = 1; i <= argc - 2; i++) {
 
     freeMemory(file_lines_1, file_length_1);
     freeMemory(file_lines_2, file_length_2);
+
+    exit(EXIT_SUCCESS);
 
 }

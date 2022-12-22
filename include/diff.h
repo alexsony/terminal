@@ -18,7 +18,7 @@ int executeDiff(int , char *[]);
 void getEditDistance(char* [], char* [], int, int);
 int readFile(char* [], char*);
 void freeMemory(char* [], int);
-void resetOptions();
+static void resetOptions();
 void printDiff(int [MAXLINES][MAXLINES], char* [], char* [], int, int);
 
 

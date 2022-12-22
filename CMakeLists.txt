@@ -7,7 +7,8 @@ add_compile_options(-std=gnu99)
 set(SOURCES
     src/Process_Manager.c
     src/Command_Manager.c
-    src/diff.c)
+    src/diff.c
+    src/chmod.c)
 
 include_directories(include)
 

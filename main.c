@@ -9,6 +9,7 @@
 #include "Process_Manager.h"
 #include "Command_Manager.h"
 #include "diff.h"
+#include "chmod.h"
 
 #define KEY_ENTER 10
 #define KEY_END 70
@@ -24,7 +25,7 @@ int printLogo() {
 
     printf("\033[H\033[J");
     //read any text file from currect directory
-    char const* const fileName = "/home/alex/workplace/custom_terminal/logo.txt";
+    char const* const fileName = "../logo.txt";
 
     FILE* file = fopen(fileName, "r"); 
 
@@ -198,15 +199,15 @@ int runTerminal() {
 
 int main() {
 
-    runTerminal();
+    // runTerminal();
 
     int argc;
     char **command;
-    char input[] = {"diff -q ../file1.txt ../file2.txt"};
+    char input[] = {"chmod +x-e-w ../file.txt"};
  
     argc = processInput(input, &command, " ");  
-   
     // executeDiff(argc, command);
+    executeChmod(argc, command);
 
     return 0;
 }
