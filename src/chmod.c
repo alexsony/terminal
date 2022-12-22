@@ -4,7 +4,21 @@
 #include <sys/unistd.h>
 #include <string.h>
 
-#include <chmod.h>
+#include "chmod.h"
+
+void output_permissions(mode_t m)
+{
+    putchar( m & S_IRUSR ? 'r' : '-' );
+    putchar( m & S_IWUSR ? 'w' : '-' );
+    putchar( m & S_IXUSR ? 'x' : '-' );
+    putchar( m & S_IRGRP ? 'r' : '-' );
+    putchar( m & S_IWGRP ? 'w' : '-' );
+    putchar( m & S_IXGRP ? 'x' : '-' );
+    putchar( m & S_IROTH ? 'r' : '-' );
+    putchar( m & S_IWOTH ? 'w' : '-' );
+    putchar( m & S_IXOTH ? 'x' : '-' );
+    putchar('\n');
+}
 
 int executeChmod(int argc, char *argcv[]) {
     if (argc != 2) {
@@ -16,20 +30,25 @@ int executeChmod(int argc, char *argcv[]) {
         fprintf(stderr,"File: %s doesn't exists\n", argcv[argc]);
         exit(EXIT_FAILURE);
     }
-    resetOptions();
-    readOptions(argcv[argc - 1]);
+    resetChmodOptions();
+    readChmodOptions(argcv[argc - 1]);
+    writeChmodOptions(argcv[argc]);
+    // clearFileExecute(argcv[argc]);
+    // setFileWrite(argcv[argc]);
+    // clearFileRead(argcv[argc]);
+    // setFileExecute(argcv[argc]);
 
     // chmod(argcv[argc], S_IXUSR | S_IXOTH | S_IXGRP);
     exit(EXIT_SUCCESS);
 }
 
-static void resetOptions() {
+void resetChmodOptions() {
     OPTION_EXECUTE = 0;
     OPTION_READ = 0;
     OPTION_WRITE = 0;
 }
 
-void readOptions(char *options) {
+void readChmodOptions(char *options) {
     int options_length = strlen(options);
     int current_state = 0;
     for (int i = 0; i < options_length; ++i) {
@@ -59,4 +78,97 @@ void readOptions(char *options) {
     printf("WRITE = %d\n", OPTION_WRITE);
     printf("EXECUTE = %d\n", OPTION_EXECUTE);
 
+}
+
+void writeChmodOptions(char *destination) {
+    if (OPTION_EXECUTE == 1) setFileExecute(destination);
+    if (OPTION_EXECUTE == -1) clearFileExecute(destination);
+    if (OPTION_READ == 1) setFileRead(destination);
+    if (OPTION_READ == -1) clearFileRead(destination);
+    if (OPTION_WRITE == 1) setFileWrite(destination);
+    if (OPTION_WRITE == -1) clearFileWrite(destination);
+}
+
+void setFileRead(char * destination) {
+    struct stat fs;
+    stat(destination, &fs);
+    printf("setRead\n");
+    output_permissions(fs.st_mode);
+
+    if (chmod(destination, fs.st_mode | (S_IRGRP + S_IROTH + S_IRUSR)) != 0) {
+        fprintf(stderr, "chmod: Something went wrong!\n");
+        exit(EXIT_FAILURE);
+    }
+    stat(destination, &fs);
+    output_permissions(fs.st_mode);
+}
+
+void clearFileRead(char * destination) {
+    struct stat fs;
+    stat(destination, &fs);
+    printf("clearRead\n");
+    output_permissions(fs.st_mode);
+
+    if (chmod(destination, fs.st_mode & ~(S_IRGRP + S_IROTH + S_IRUSR)) != 0) {
+        fprintf(stderr, "chmod: Something went wrong!\n");
+        exit(EXIT_FAILURE);
+    }
+    stat(destination, &fs);
+    output_permissions(fs.st_mode);
+}
+
+void setFileWrite(char * destination) {
+    struct stat fs;
+    stat(destination, &fs);
+    printf("setWrite\n");
+    output_permissions(fs.st_mode);
+
+    if (chmod(destination, fs.st_mode | (S_IWGRP + S_IWOTH + S_IWUSR)) != 0) {
+        fprintf(stderr, "chmod: Something went wrong!\n");
+        exit(EXIT_FAILURE);
+    }
+    stat(destination, &fs);
+    output_permissions(fs.st_mode);
+}
+
+void clearFileWrite(char * destination) {
+    struct stat fs;
+    stat(destination, &fs);
+    printf("clearWrite\n");
+    output_permissions(fs.st_mode);
+
+    if (chmod(destination, fs.st_mode & ~(S_IWGRP + S_IWOTH + S_IWUSR)) != 0) {
+        fprintf(stderr, "chmod: Something went wrong!\n");
+        exit(EXIT_FAILURE);
+    }
+    stat(destination, &fs);
+    output_permissions(fs.st_mode);
+}
+
+void setFileExecute(char * destination) {
+    struct stat fs;
+    stat(destination, &fs);
+    printf("setExecute\n");
+    output_permissions(fs.st_mode);
+
+    if (chmod(destination, fs.st_mode | (S_IXGRP + S_IXOTH + S_IXUSR)) != 0) {
+        fprintf(stderr, "chmod: Something went wrong!\n");
+        exit(EXIT_FAILURE);
+    }
+    stat(destination, &fs);
+    output_permissions(fs.st_mode);
+}
+
+void clearFileExecute(char * destination) {
+    struct stat fs;
+    stat(destination, &fs);
+    printf("clearWrite\n");
+    output_permissions(fs.st_mode);
+
+    if (chmod(destination, fs.st_mode & ~(S_IXGRP + S_IXOTH + S_IXUSR)) != 0) {
+        fprintf(stderr, "chmod: Something went wrong!\n");
+        exit(EXIT_FAILURE);
+    }
+    stat(destination, &fs);
+    output_permissions(fs.st_mode);
 }

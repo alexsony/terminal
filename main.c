@@ -203,7 +203,7 @@ int main() {
 
     int argc;
     char **command;
-    char input[] = {"chmod +x-e-w ../file.txt"};
+    char input[] = {"chmod -w+rx ../file.txt"};
  
     argc = processInput(input, &command, " ");  
     // executeDiff(argc, command);

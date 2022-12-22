@@ -18,7 +18,7 @@ void freeMemory(char* arr[], int lineCount)
         free(arr[i]);}
 }
 
-static void resetOptions(){
+void resetDiffOptions(){
     OPTION_BRIEF = 0;
     OPTION_FORCECOMPARE = 0;
     IS_BINARY = 0;
@@ -135,7 +135,7 @@ char file1[MAXLENGTH], file2[MAXLENGTH];   // File Buffers
 char* file_lines_1[MAXLINES];      // String arrays holding strings pertaining to their files
 char* file_lines_2[MAXLINES];
 
-resetOptions();
+resetDiffOptions();
     
 if (argc == 1) {
     fprintf(stderr,"Error: Not Enough Arguments\n");
@@ -148,7 +148,7 @@ for (int i = 1; i <= argc - 2; i++) {
     if (strcmp(flag, "-q") == 0)        OPTION_BRIEF = 1;
     else if (strcmp(flag, "-a") == 0)   OPTION_FORCECOMPARE = 1;
     else {
-        fprintf(stderr,"Invalid option: %s\n", flag);
+        fprintf(stderr,"diff: Invalid option: %s\n", flag);
         exit(EXIT_FAILURE);
     }
 }
