@@ -12,7 +12,7 @@ int executeMore(int argc, char *argcv[]) {
     char* file_lines[MAXLINES]; 
 
     if (argc <1) {
-        fprintf(stderr,"Error: Too few arguments!\n");
+        fprintf(stderr,BRED"Error: "RESET"Too few arguments!\n");
         exit(EXIT_FAILURE);
     }
     resetMoreOptions();
@@ -26,18 +26,19 @@ int executeMore(int argc, char *argcv[]) {
 
     int file_length = readMoreFile(file_lines, argcv[argc]);
     displayMore(file_length, file_lines);
+    exit(EXIT_SUCCESS);
 }
 
 void checkMoreArgument(char *arg) {
     if(arg[0] != '-') {
-        fprintf(stderr,"more: Bad argument: \'%s\'\n", arg);
+        fprintf(stderr,"more: "BRED"Bad argument:"RESET"\'%s\'\n", arg);
         exit(EXIT_FAILURE);
     }
     if (strcmp(arg, "-d") == 0) OPTION_D = 1;
     else if (strcmp(arg, "-s") == 0) OPTION_S = 1;
     else if(isNumber(arg)) OPTION_LINES = 1;
     else {
-        fprintf(stderr,"more: Invalid argument: \'%s\'\n", arg);
+        fprintf(stderr,"more: " BRED"Invalid argument:"RESET"\'%s\'\n", arg);
         exit(EXIT_FAILURE);
     }
 }
@@ -53,27 +54,29 @@ int readMoreFile(char* arr[], char* name)
 {
     FILE *file;
     char line[MAXLINES];
-    int index = 0;
+    int index = 0, is_blank_line = 0;
     file = fopen(name, "r");
     if (file == NULL) {
-        fprintf(stderr,"Can't open File: %s\n", name);
+        fprintf(stderr, BRED "Error: " RESET "Can't open File: %s\n", name);
         exit(EXIT_FAILURE);
     }
     while (fgets(line, MAXLINES, file) != NULL) {
-        // if (line[strlen(line) - 1] == '\n')
-        //     line[strlen(line) - 1] = '\0';  //Removes newline char from end of string
-        arr[index] = malloc(sizeof(line));
-        strcpy(arr[index], line);
-        index++;
+        if (line[0] == '\n') is_blank_line++;
+        else is_blank_line = 0;
+
+        if ((is_blank_line < 2) && (OPTION_S)) {
+            arr[index] = malloc(sizeof(line));
+            strcpy(arr[index], line);
+            index++;
+        }
+
+        if(OPTION_S == 0) {
+            arr[index] = malloc(sizeof(line));
+            strcpy(arr[index], line);
+            index++;
+        }
     }
-    // for(int i = 0; i < index; ++i) {
-    //     for(int j = 0; j < strlen(arr[i]);j++)  {
-    //         if ((!isascii(arr[i][j]) || iscntrl(arr[i][j])) && !isspace(arr[i][j])) {
-    //             IS_BINARY = 1;
-    //             break;
-    //         }
-    //     }
-    // }
+
     fclose(file);
     return index;
 }
@@ -90,18 +93,37 @@ void runLines(int length, char *file[]) {
     int i, ch;
     for (i = 0; i <  NO_DISPLAY_LINES; ++i) 
         printf("%s", file[i]);
-    printf(BBLK WHTB "--More--(%d/%d lines)" RESET,i,length);
+
+    printMoreDetails(i, length);
 
     do {
         ch = getch();
 
-        if(KEY_ENTER == ch) {
+        if (KEY_ENTER == ch) {
             printf("\33[2K\r%s", file[i]);
             i++;
-        printf(BBLK WHTB "--More--(%d/%d lines)" RESET,i,length);
+            printMoreDetails(i, length);
         }
+
+        if (KEY_SPACEBAR == ch) {
+            for (int j = 0; j < 5; ++j) {
+                printf("\33[2K\r%s", file[i]);
+                i++;
+            }
+            printMoreDetails(i, length);
+        }
+
+        if ('q' == (char)ch) break;
     } while (i < length);
     printf("\33[2K\r");
+}
+
+void printMoreDetails(int current_index, int length) {
+    if (OPTION_D) {
+        printf(BBLK WHTB "--More--(%d/%d lines)[Press space to continue, 'q' to quit.]" RESET,current_index,length);
+    } else {
+        printf(BBLK WHTB "--More--(%d/%d lines)" RESET,current_index,length);
+    }
 }
 
 int isNumber(char s[]) {

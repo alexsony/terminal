@@ -12,6 +12,7 @@ void checkMoreArgument(char *);
 void resetMoreOptions();
 void displayMore(int, char * []);
 void runLines(int, char * []);
+void printMoreDetails(int, int);
 int isNumber(char []);
 
 #endif
