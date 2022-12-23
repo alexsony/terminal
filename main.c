@@ -6,18 +6,10 @@
 #include <sys/ioctl.h>
 #include <termios.h>
 
+#include "Terminal_Manager.h"
 #include "Process_Manager.h"
 #include "Command_Manager.h"
-
-#define KEY_ENTER 10
-#define KEY_END 70
-#define KEY_UP 65
-#define KEY_DOWN 66
-#define KEY_RIGHT 67
-#define KEY_LEFT 68
-#define KEY_BACKSPACE 127
-#define DELIMITER 27
-
+#include "more.h"
 
 int printLogo() {
 
@@ -59,30 +51,6 @@ void getData(char *data) {
     strcat(data, ":~");
     strcat(data, getDirectory());
     strcat(data, "$ ");
-}
-
-int getch() {
-    static struct termios oldtc, newtc;
-    int ch;
-    //get the parameters asociated with the terminal 
-    tcgetattr(STDIN_FILENO, &oldtc);
-    newtc = oldtc;
-    //c_lflag = control terminal functions
-    //here disable echo for input
-    /*ICANON normally takes care that one line at a time will be processed
-    that means it will return if it sees a "\n" or an EOF or an EOL*/
-    newtc.c_lflag &= ~(ICANON | ECHO);
-    //set the parameters asociated with the terminal 
-    //TCSANOW the changes will occur immediately
-    tcsetattr(STDIN_FILENO, TCSANOW, &newtc);
-    ch = getchar();//read char
-    if (DELIMITER == ch) {
-        ch = getchar();
-        ch = getchar();
-    }
-    //enable echo flag
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldtc);
-    return ch;
 }
 
 void runCommand(char command[]) {
@@ -197,15 +165,16 @@ int runTerminal() {
 
 int main() {
 
-    runTerminal();
+    // runTerminal();
 
     int argc;
     char **command;
-    char input[] = {"chmod -wx ../file.txt"};
+    char input[] = {"more -52 -d ../file.txt"};
  
     argc = processInput(input, &command, " ");  
     // executeDiff(argc, command);
     // executeChmod(argc, command);
+    executeMore(argc, command);
 
     return 0;
 }
