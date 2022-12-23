@@ -169,7 +169,7 @@ int main() {
 
     int argc;
     char **command;
-    char input[] = {"more -52 -d ../file.txt"};
+    char input[] = {"more -5 -d ../file.txt"};
  
     argc = processInput(input, &command, " ");  
     // executeDiff(argc, command);

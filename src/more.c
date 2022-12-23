@@ -4,6 +4,7 @@
 #include <ctype.h>
 
 #include "more.h"
+#include "Terminal_Manager.h"
 
 #define MAXLINES 1000
 
@@ -24,6 +25,7 @@ int executeMore(int argc, char *argcv[]) {
     printf("OPTION_S = %d\n", OPTION_S);
 
     int file_length = readMoreFile(file_lines, argcv[argc]);
+    displayMore(file_length, file_lines);
 }
 
 void checkMoreArgument(char *arg) {
@@ -74,6 +76,32 @@ int readMoreFile(char* arr[], char* name)
     // }
     fclose(file);
     return index;
+}
+
+void displayMore(int length, char *file[]) {
+    if (OPTION_LINES == 0) {
+        for(int i = 0; i < length; ++i) printf("%s",file[i]);
+    } else if ((OPTION_LINES) && (NO_DISPLAY_LINES > 0)) {
+        runLines(length, file);
+    }
+}
+
+void runLines(int length, char *file[]) {
+    int i, ch;
+    for (i = 0; i <  NO_DISPLAY_LINES; ++i) 
+        printf("%s", file[i]);
+    printf(BBLK WHTB "--More--(%d/%d lines)" RESET,i,length);
+
+    do {
+        ch = getch();
+
+        if(KEY_ENTER == ch) {
+            printf("\33[2K\r%s", file[i]);
+            i++;
+        printf(BBLK WHTB "--More--(%d/%d lines)" RESET,i,length);
+        }
+    } while (i < length);
+    printf("\33[2K\r");
 }
 
 int isNumber(char s[]) {

@@ -10,7 +10,8 @@ int executeMore(int , char *[]);
 int readMoreFile(char* [], char*);
 void checkMoreArgument(char *);
 void resetMoreOptions();
+void displayMore(int, char * []);
+void runLines(int, char * []);
 int isNumber(char []);
-
 
 #endif
