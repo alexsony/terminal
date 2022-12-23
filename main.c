@@ -8,8 +8,6 @@
 
 #include "Process_Manager.h"
 #include "Command_Manager.h"
-#include "diff.h"
-#include "chmod.h"
 
 #define KEY_ENTER 10
 #define KEY_END 70
@@ -199,15 +197,15 @@ int runTerminal() {
 
 int main() {
 
-    // runTerminal();
+    runTerminal();
 
     int argc;
     char **command;
-    char input[] = {"chmod -w+rx ../file.txt"};
+    char input[] = {"chmod -wx ../file.txt"};
  
     argc = processInput(input, &command, " ");  
     // executeDiff(argc, command);
-    executeChmod(argc, command);
+    // executeChmod(argc, command);
 
     return 0;
 }

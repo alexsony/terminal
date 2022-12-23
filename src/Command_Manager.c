@@ -4,6 +4,7 @@
 
 #include "Command_Manager.h"
 #include "diff.h"
+#include "chmod.h"
 
 int processInput(char command[], char *** split, const char *delim) {
     char *tmp_str = command;
@@ -33,12 +34,13 @@ int processInput(char command[], char *** split, const char *delim) {
 }
 
 int handleCustomCommand(const char *command, char * argv[], int no_argc) {
-    int no_of_command = 3, search_command = 0, status = 1;
+    int no_of_command = 4, search_command = 0, status = 1;
     char * list_of_commands[no_of_command];
 
     list_of_commands[0] = "help";
     list_of_commands[1] = "version";
     list_of_commands[2] = "diff";
+    list_of_commands[3] = "chmod";
 
     for (int i = 0; i < no_of_command; ++i) {
         if (strcmp(command, list_of_commands[i]) == 0) {
@@ -62,6 +64,10 @@ int handleCustomCommand(const char *command, char * argv[], int no_argc) {
         break;
     case 3:
         executeDiff(no_argc, argv);
+        status = 0;
+        break;
+    case 4:
+        executeChmod(no_argc, argv);
         status = 0;
         break;
     default:
