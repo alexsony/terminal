@@ -96,7 +96,6 @@ void runLines(int length, char *file[]) {
         printf("%s", file[i]);
 
     if (IS_PIPED) return;
-    
     printMoreDetails(i, length);
     do {
         ch = getch();

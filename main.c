@@ -53,13 +53,15 @@ void getData(char *data) {
 }
 
 void runCommand(char command[]) {
-    char **split_command;
-    int no_pipes = processInput(command, &split_command, "|");
+    char **split_command, **redirect;
+    int is_redirect = processInput(command, &redirect, ">");
+    int no_pipes = processInput(redirect[0], &split_command, "|");
 
-    if (0 == no_pipes) executeCommand(command);
-    else executePipes(split_command, no_pipes);
+    if ((0 == no_pipes) && (0 == is_redirect)) executeCommand(command);
+    else if ((no_pipes) || (is_redirect)) executePipes(split_command, no_pipes, redirect[1], is_redirect);
 
     free(split_command);
+    free(redirect);
 }
 
 //VT100 escape codes

@@ -3,6 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <time.h>
 
 #include "Process_Manager.h"
@@ -70,6 +73,40 @@ int forkAndChain(int* lpipe, int* rpipe, char command[]) {
     return 0;
 }
 
+int forkAndRedirect(int* lpipe, char file_name[], char command[]) {
+    int pid = fork();
+    int status_code;
+    if (pid < 0) {
+        return 1;
+    }
+    if(pid == 0)
+    {
+        if(lpipe) setRead(lpipe);
+        int file = open(&file_name[1], O_RDWR|O_CREAT|O_APPEND, 0600);
+        if (-1 == file) {
+            fprintf(stderr,"\r\nError on creating file: %s", file_name);
+            exit(EXIT_FAILURE);
+        }
+        dup2(file, STDOUT_FILENO);
+        close(file);
+
+        char **cmd;
+        int no_argc = processInput(command, &cmd, " ");
+        int check_type_command = handleCustomCommand(cmd[0], cmd, no_argc, 1);
+        if (check_type_command) {
+            status_code = execvp(cmd[0], cmd);
+            free(cmd);
+            if (-1 == status_code) {
+                fprintf(stderr,"\r\n%s: command not found!", command);
+                exit(EXIT_FAILURE);
+            }
+        } else {
+            exit(EXIT_SUCCESS);
+        }
+    }
+    return 0;
+}
+
 int executeCommand(char command[]) {
     int pid = fork();
     if (pid < 0) {
@@ -95,10 +132,9 @@ int executeCommand(char command[]) {
     return 0;
 }
 
-int executePipes(char **command, int no_pipes) {
+int executePipes(char **command, int no_pipes, char file[], int is_redirect) {
 
     int lpipe[2], rpipe[2];
-
     // create the first output pipe
     pipe(rpipe);  
 
@@ -121,7 +157,8 @@ int executePipes(char **command, int no_pipes) {
     }
 
     // fork the last one, its output goes somewhere else      
-    forkAndChain(lpipe, NULL, command[no_pipes]);
+    (is_redirect == 0) ? forkAndChain(lpipe, NULL, command[no_pipes])
+                       : forkAndRedirect(lpipe, file, command[no_pipes]);
     close(lpipe[0]);
     close(lpipe[1]);
 
