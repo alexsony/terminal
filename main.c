@@ -9,7 +9,6 @@
 #include "Terminal_Manager.h"
 #include "Process_Manager.h"
 #include "Command_Manager.h"
-#include "more.h"
 
 int printLogo() {
 
@@ -165,7 +164,7 @@ int runTerminal() {
 
 int main() {
 
-    // runTerminal();
+    runTerminal();
 
     int argc;
     char **command;
@@ -174,7 +173,7 @@ int main() {
     argc = processInput(input, &command, " ");  
     // executeDiff(argc, command);
     // executeChmod(argc, command);
-    executeMore(argc, command);
+    // executeMore(argc, command, 1);
 
     return 0;
 }

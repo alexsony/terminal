@@ -55,7 +55,7 @@ int forkAndChain(int* lpipe, int* rpipe, char command[]) {
         // else you may want to redirect out to somewhere else for the end
         char **cmd;
         int no_argc = processInput(command, &cmd, " ");
-        int check_type_command = handleCustomCommand(cmd[0], cmd, no_argc);
+        int check_type_command = handleCustomCommand(cmd[0], cmd, no_argc, 1);
         if (check_type_command) {
             status_code = execvp(cmd[0], cmd);
             free(cmd);
@@ -79,7 +79,7 @@ int executeCommand(char command[]) {
     if (pid == 0) {
         char **cmd; 
         int no_argc = processInput(command, &cmd, " "); 
-        int check_type_command = handleCustomCommand(cmd[0], cmd, no_argc);
+        int check_type_command = handleCustomCommand(cmd[0], cmd, no_argc, 0);
         if (check_type_command) {
             int status_code = execvp(cmd[0], cmd);
             free(cmd);

@@ -8,13 +8,14 @@
 
 #define MAXLINES 1000
 
-int executeMore(int argc, char *argcv[]) {
+int executeMore(int argc, char *argcv[], int is_piped) {
     char* file_lines[MAXLINES]; 
 
     if (argc <1) {
         fprintf(stderr,BRED"Error: "RESET"Too few arguments!\n");
         exit(EXIT_FAILURE);
     }
+    IS_PIPED = is_piped;
     resetMoreOptions();
     for (int i = 1; i <= argc - 1; ++i) {
         checkMoreArgument(argcv[i]);
@@ -94,8 +95,9 @@ void runLines(int length, char *file[]) {
     for (i = 0; i <  NO_DISPLAY_LINES; ++i) 
         printf("%s", file[i]);
 
+    if (IS_PIPED) return;
+    
     printMoreDetails(i, length);
-
     do {
         ch = getch();
 
